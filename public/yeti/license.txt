@@ -1,0 +1,11 @@
+Model Information:
+* title:	YetiSeal(animated)
+* source:	https://sketchfab.com/3d-models/yetisealanimated-be396d5883b740c6a4515e9466b40e7d
+* author:	mamacita212 (https://sketchfab.com/mamacita212)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "YetiSeal(animated)" (https://sketchfab.com/3d-models/yetisealanimated-be396d5883b740c6a4515e9466b40e7d) by mamacita212 (https://sketchfab.com/mamacita212) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

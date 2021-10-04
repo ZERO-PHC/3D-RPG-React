@@ -1,0 +1,11 @@
+Model Information:
+* title:	Elephant Take a bath  lowpoly
+* source:	https://sketchfab.com/3d-models/elephant-take-a-bath-lowpoly-52534888ca7b4272babc45c598b72481
+* author:	Unity  (shehab house) (https://sketchfab.com/shahabahmed)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Elephant Take a bath  lowpoly" (https://sketchfab.com/3d-models/elephant-take-a-bath-lowpoly-52534888ca7b4272babc45c598b72481) by Unity  (shehab house) (https://sketchfab.com/shahabahmed) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

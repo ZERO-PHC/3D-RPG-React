@@ -1,0 +1,11 @@
+Model Information:
+* title:	mechadragon/chaosdramon (now animated)
+* source:	https://sketchfab.com/3d-models/mechadragonchaosdramon-now-animated-7eb1ef6913354b80996c594d7b80d221
+* author:	mamacita212 (https://sketchfab.com/mamacita212)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "mechadragon/chaosdramon (now animated)" (https://sketchfab.com/3d-models/mechadragonchaosdramon-now-animated-7eb1ef6913354b80996c594d7b80d221) by mamacita212 (https://sketchfab.com/mamacita212) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
