@@ -9,18 +9,38 @@ import {
   Sphere,
   RoundedBox,
   Plane,
+  Text,
 } from "@react-three/drei";
 import { Physics, usePlane, useBox } from "@react-three/cannon";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { proxy, useSnapshot } from "valtio";
 
 import "./App.css";
 import Avatar from "./Components/Avatar";
+import ArenaUI from "./Components/ArenaUI";
+import RoundBar from "./Components/round_bar/RoundBar";
+
+import { staticCards } from "./cards/cards.js";
+import Cards from "./Components/Cards/CardsComponent";
+import Animek from "./Components/animeks/Animek";
+import AnimekCircle from "./Components/animeks/AnimekCircle";
+import MidFieldLine from "./arenaBase/MidFieldLine";
+import MidFieldCircle from "./arenaBase/MidFieldCircle";
 
 function App() {
   const planeref = useRef({});
   const ref = useRef({});
+  const roundBarRef = useRef({});
+  // const [cardsState, setCardsState] = useState(staticCards);
+  let cardsState = useRef(staticCards);
 
-  console.log("ref", ref.current.position);
+  // how to unite the refs of the cards
+
+  // console.log("static cards", staticCards);
+  // const [cardsState, setCardsState] = useState(staticCards);
+  //   Using a Valtio state model to bridge reactivity between
+  // the canvas and the dom, both can write to it and/or react to it.
+  // const cardsState = proxy(staticCards);
 
   function ArenaPlane() {
     const [ref] = usePlane(() => ({
@@ -39,6 +59,7 @@ function App() {
       </mesh>
     );
   }
+
   function ArenaEdge() {
     const [ref] = usePlane(() => ({
       rotation: [-Math.PI / 2, 0, 0],
@@ -46,7 +67,6 @@ function App() {
     return (
       <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]}>
         <planeBufferGeometry attach="geometry" args={[77, 77]} />
-
         <meshStandardMaterial
           attach="material"
           color="rgba(204, 0, 255, 0.5)"
@@ -59,333 +79,108 @@ function App() {
     );
   }
 
-  const Animek1 = (props) => {
-    const model = useLoader(GLTFLoader, "./hawky/scene.gltf");
-    console.log("hawky animes", model.animations);
+  const ArenaTxt = () => (
+    <Text
+      fillOpacity={0}
+      strokeWidth={"2.5%"}
+      strokeColor="#00E0FF"
+      fontSize={3}
+      font="https://fonts.gstatic.com/s/orbitron/v9/yMJRMIlzdpvBhQQL_Qq7dys.woff"
+      // anchorX="right"
+      // anchorY="middle"
+      position={[-34, 0.2, -27]}
+      rotation={[Math.PI / 2.0, 9.4, 4.7]}
+      direction={"rtl"}
+    >
+      ARENA-01
+    </Text>
+  );
 
-    // Here's the animation part
-    // *************************
-    let mixer;
-    if (model.animations.length) {
-      mixer = new THREE.AnimationMixer(model.scene);
-      model.animations.forEach((clip) => {
-        const action = mixer.clipAction(clip);
-        action.play();
-      });
+  function getIdxDistance() {
+    let idxDistance = 0;
+
+    const selectedCards = getSelectedCards();
+    console.log("selected Cards", selectedCards.length);
+
+    switch (selectedCards.length) {
+      case 1:
+        idxDistance = 0;
+        break;
+      case 2:
+        idxDistance = 2;
+        break;
+      case 3:
+        idxDistance = 4;
+        break;
+
+      default:
+        break;
     }
 
-    useFrame((state, delta) => {
-      mixer?.update(delta);
-    });
-    // *************************
+    return idxDistance;
+  }
 
-    model.scene.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        child.material.side = THREE.FrontSide;
+  function getSelectedCards() {
+    return cardsState.current.filter((card) => {
+      return card.selected != false;
+    });
+  }
+
+  function handlePointerHover(card, setActive, active) {
+    console.log("cardsStateref", card);
+    setActive(!active);
+  }
+
+  function updateCardsState(card, selected) {
+    cardsState.current.map((refCard) => {
+      if (refCard.id == card.id) {
+        console.log("matched card", card);
+
+        refCard.selected = !selected;
       }
     });
 
-    return (
-      <primitive position={[18, 0, -29]} object={model.scene} scale={2.0} />
-    );
-  };
+    console.log("current state cards", cardsState.current);
+  }
 
-  const Animek2 = (props) => {
-    const model = useLoader(GLTFLoader, "./nidorino/scene.gltf");
-    console.log("hawky animes", model.animations);
+  // get ref of current pos of roundbar, update the state of the card to selected and listen in a spring for
+  // changes in selected for animation
+  function handlePointerDown(card, setSelected, selected) {
+    console.log("current state cards", cardsState.current);
 
-    // Here's the animation part
-    // *************************
-    let mixer;
-    if (model.animations.length) {
-      mixer = new THREE.AnimationMixer(model.scene);
-      model.animations.forEach((clip) => {
-        const action = mixer.clipAction(clip);
-        action.play();
-      });
+    console.log("cardsStateref", card);
+
+    updateCardsState(card, selected);
+
+    setSelected(!selected);
+  }
+
+  function setSelectedState(card, event, setFunc, stateVar) {
+    switch (event) {
+      case "enter":
+        handlePointerHover(card, setFunc, stateVar);
+        break;
+      case "leave":
+        handlePointerHover(card, setFunc, stateVar);
+        break;
+      case "down":
+        handlePointerDown(card, setFunc, stateVar);
+        break;
+
+      default:
+        break;
     }
+  }
 
-    useFrame((state, delta) => {
-      mixer?.update(delta);
-    });
-    // *************************
+  console.log("newcards", cardsState);
 
-    model.scene.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        child.material.side = THREE.FrontSide;
-      }
-    });
+  function handlePointer(cardId, event, setFunc, stateVar) {
+    console.log("handling pointer down", cardId, event, setFunc);
 
-    return <primitive position={[0, 0, -20]} object={model.scene} scale={2} />;
-  };
+    setSelectedState(cardId, event, setFunc, stateVar);
+  }
 
-  const Animek3 = (props) => {
-    const model = useLoader(GLTFLoader, "./luxray/scene.gltf");
-    console.log("hawky animes", model.animations);
-
-    // Here's the animation part
-    // *************************
-    let mixer;
-    if (model.animations.length) {
-      mixer = new THREE.AnimationMixer(model.scene);
-      // model.animations.forEach((clip) => {
-      //   const action = mixer.clipAction(clip);
-      //   action.play();
-      // });
-      const clip = model.animations[0];
-      const action = mixer.clipAction(clip);
-      action.play();
-    }
-
-    useFrame((state, delta) => {
-      mixer?.update(delta);
-    });
-    // *************************
-
-    model.scene.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        child.material.side = THREE.FrontSide;
-      }
-    });
-
-    return (
-      <primitive position={[-18, 0, -29]} object={model.scene} scale={0.04} />
-    );
-  };
-
-  const Animek4 = (props) => {
-    const model = useLoader(GLTFLoader, "./jet1/scene.gltf");
-    console.log("4 animes", model.animations);
-
-    // Here's the animation part
-    // *************************
-    let mixer;
-    if (model.animations.length) {
-      mixer = new THREE.AnimationMixer(model.scene);
-      // model.animations.forEach((clip) => {
-      //   const action = mixer.clipAction(clip);
-      //   action.play();
-      //  });
-      const clip = model.animations[7];
-      const action = mixer.clipAction(clip);
-      action.play();
-    }
-
-    useFrame((state, delta) => {
-      mixer?.update(delta);
-    });
-    // *************************
-
-    model.scene.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        child.material.side = THREE.FrontSide;
-      }
-    });
-
-    return (
-      <primitive
-        rotation={[0, Math.PI /1, 0]}
-        position={[0, 0, 20]}
-        object={model.scene}
-        scale={2}
-      />
-    );
-  };
-
-  const Animek5 = (props) => {
-    const model = useLoader(GLTFLoader, "./bulba/scene.gltf");
-    console.log("4 animes", model.animations);
-
-    // Here's the animation part
-    // *************************
-    let mixer;
-    if (model.animations.length) {
-      mixer = new THREE.AnimationMixer(model.scene);
-      // model.animations.forEach((clip) => {
-      //   const action = mixer.clipAction(clip);
-      //   action.play();
-      //  });
-      const clip = model.animations[0];
-      const action = mixer.clipAction(clip);
-      action.play();
-    }
-
-    useFrame((state, delta) => {
-      mixer?.update(delta);
-    });
-    // *************************
-
-    model.scene.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        child.material.side = THREE.FrontSide;
-      }
-    });
-
-    return (
-      <primitive
-        rotation={[0, Math.PI /1, 0]}
-        position={[18, 0, 30]}
-        object={model.scene}
-        scale={0.1}
-      />
-    );
-  };
-  const Animek6 = (props) => {
-    const model = useLoader(GLTFLoader, "./jte2/scene.gltf");
-    console.log("4 animes", model.animations);
-
-    // Here's the animation part
-    // *************************
-    let mixer;
-    if (model.animations.length) {
-      mixer = new THREE.AnimationMixer(model.scene);
-      // model.animations.forEach((clip) => {
-      //   const action = mixer.clipAction(clip);
-      //   action.play();
-      //  });
-      const clip = model.animations[7];
-      const action = mixer.clipAction(clip);
-      action.play();
-    }
-
-    useFrame((state, delta) => {
-      mixer?.update(delta);
-    });
-    // *************************
-
-    model.scene.traverse((child) => {
-      if (child.isMesh) {
-        // child.castShadow = true;
-        // child.receiveShadow = true;
-        // child.material.side = THREE.FrontSide;
-      }
-    });
-
-    return (
-      <primitive
-        rotation={[0, Math.PI /1, 0]}
-        position={[-18, 0, 30]}
-        object={model.scene}
-        scale={4}
-      />
-    );
-  };
-
-  const AnimekCircle1 = () => {
-    return (
-      <Ring
-        scale={0.2}
-        args={[18, 21, 100]}
-        smoothness={0.2}
-        position={[-18, 0.2, -29]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <meshPhongMaterial attach="material" color="#595D61" />
-      </Ring>
-    );
-  };
-  const AnimekCircle2 = () => {
-    return (
-      <Ring
-        scale={0.2}
-        args={[18, 21, 100]}
-        smoothness={0.2}
-        position={[0, 0.2, -21]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <meshPhongMaterial attach="material" color="#595D61" />
-      </Ring>
-    );
-  };
-  const AnimekCircle3 = () => {
-    return (
-      <Ring
-        scale={0.2}
-        args={[18, 21, 100]}
-        smoothness={0.2}
-        position={[18, 0.2, -29]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <meshPhongMaterial attach="material" color="#595D61" />
-      </Ring>
-    );
-  };
-  const AnimekCircle4 = () => {
-    return (
-      <Ring
-        scale={0.2}
-        args={[18, 21, 100]}
-        smoothness={0.2}
-        position={[18, 0.2, 29]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <meshPhongMaterial attach="material" color="#595D61" />
-      </Ring>
-    );
-  };
-  const AnimekCircle5 = () => {
-    return (
-      <Ring
-        scale={0.2}
-        args={[18, 21, 100]}
-        smoothness={0.2}
-        position={[0, 0.2, 21]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <meshPhongMaterial attach="material" color="#595D61" />
-      </Ring>
-    );
-  };
-  const AnimekCircle6 = () => {
-    return (
-      <Ring
-        scale={0.2}
-        args={[18, 21, 100]}
-        smoothness={0.2}
-        position={[-18, 0.2, 29]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <meshPhongMaterial attach="material" color="#595D61" />
-      </Ring>
-    );
-  };
-
-  const MidFieldLine = () => {
-    return (
-      <Plane
-        args={[76, 0.5]}
-        position={[0, 0.3, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <meshPhongMaterial color="purple" />
-      </Plane>
-    );
-  };
-
-  const MidFieldCircle = () => {
-    return (
-      <Ring
-        scale={0.28}
-        args={[18, 20, 100]}
-        smoothness={0.2}
-        position={[0, 0.2, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <meshPhongMaterial color="purple" />
-      </Ring>
-    );
-  };
-
+  //Render
   return (
     <Canvas style={{ height: "100vh", width: "100vw" }}>
       <Suspense fallback={null}>
@@ -405,6 +200,98 @@ function App() {
           <ArenaPlane />
           <ArenaEdge />
         </Physics>
+
+        <MidFieldLine />
+        <MidFieldCircle />
+        <Animek
+          animation={0}
+          path={"./hawky/scene.gltf"}
+          position={[18, 0, -29]}
+          scale={2.0}
+        />
+        <Animek
+          animation={0}
+          path={"./nidorino/scene.gltf"}
+          position={[0, 0, -20]}
+          scale={2.0}
+        />
+        <Animek
+          animation={0}
+          path={"./luxray/scene.gltf"}
+          position={[-18, 0, -29]}
+          scale={0.04}
+        />
+        <Animek
+          animation={7}
+          path={"./jet1/scene.gltf"}
+          rotation={[0, Math.PI / 1, 0]}
+          position={[0, 0, 20]}
+          scale={2}
+        />
+        <Animek
+          animation={0}
+          path={"./bulba/scene.gltf"}
+          rotation={[0, Math.PI / 1, 0]}
+          position={[18, 0, 30]}
+          scale={0.1}
+        />
+        <Animek
+          animation={7}
+          path={"./jte2/scene.gltf"}
+          rotation={[0, Math.PI / 1, 0]}
+          position={[-18, 0, 30]}
+          scale={4}
+        />
+        <AnimekCircle
+          scale={0.25}
+          args={[18, 21, 100]}
+          smoothness={0.2}
+          position={[-18, 0.2, -29]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        />
+        <AnimekCircle
+          scale={0.25}
+          args={[18, 21, 100]}
+          smoothness={0.2}
+          position={[0, 0.2, -21]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        />
+        <AnimekCircle
+          scale={0.25}
+          args={[18, 21, 100]}
+          smoothness={0.2}
+          position={[18, 0.2, -29]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        />
+        <AnimekCircle
+          scale={0.25}
+          args={[18, 21, 100]}
+          smoothness={0.2}
+          position={[18, 0.2, 29]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        />
+        <AnimekCircle
+          scale={0.25}
+          args={[18, 21, 100]}
+          smoothness={0.2}
+          position={[0, 0.2, 21]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        />
+        <AnimekCircle
+          scale={0.25}
+          args={[18, 21, 100]}
+          smoothness={0.2}
+          position={[-18, 0.2, 29]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        />
+        <ArenaTxt />
+        <RoundBar roundBarRef={roundBarRef} />
+        <Cards
+          cards={cardsState}
+          handlePointer={handlePointer}
+          roundBarRef={roundBarRef}
+          getIdxDistance={getIdxDistance}
+        />
         <group ref={ref} position={[0, 0, 0]}>
           <PerspectiveCamera
             makeDefault
@@ -416,20 +303,6 @@ function App() {
             {/* <Avatar /> */}
           </group>
         </group>
-        <MidFieldLine />
-        <MidFieldCircle />
-        <Animek1 />
-        <Animek2 />
-        <Animek3 />
-        <AnimekCircle1 />
-        <AnimekCircle2 />
-        <AnimekCircle3 />
-        <Animek4 />
-        <Animek5 />
-        <Animek6 />
-         <AnimekCircle4 /> 
-        <AnimekCircle5 />
-        <AnimekCircle6 /> 
       </Suspense>
     </Canvas>
   );
