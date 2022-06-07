@@ -25,7 +25,6 @@ export default function Card({ ...props }) {
 
   const { position } = useSpring({
     position: selected
-      // ? [rb1v.x, rb1v.y + cardData.getIdxDistance(), rb1v.z]
       ? [rb1v.x, rb1v.y - props.getIdxDistance(), rb1v.z]
       : cardData.position,
   });
